@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'wunderlist_to_github'
+
+collector = WunderlistToGithub::WunderlistTaskCollector.new(
+  ENV['WUNDERLIST_CLIENT_ID'],
+  ENV['WUNDERLIST_ACCESS_TOKEN']
+)
+puts collector.tasks('Work').map(&:title)
