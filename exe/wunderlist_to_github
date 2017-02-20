@@ -1,10 +1,43 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'wunderlist_to_github'
+require 'thor'
+require 'wunderlist_to_github/source'
+require 'wunderlist_to_github/sink'
 
-collector = WunderlistToGithub::WunderlistTaskCollector.new(
-  ENV['WUNDERLIST_CLIENT_ID'],
-  ENV['WUNDERLIST_ACCESS_TOKEN']
-)
-puts collector.tasks('Work').map(&:title)
+# Command-line interface for converting Wunderlist tasks to GitHub issues.
+class WlToGhCLI < Thor
+  def initialize(*args)
+    @wl = WunderlistToGithub::WunderlistSource.new(
+      ENV['WUNDERLIST_CLIENT_ID'],
+      ENV['WUNDERLIST_ACCESS_TOKEN']
+    )
+    @gh = WunderlistToGithub::GitHubSink.new(
+      ENV['GITHUB_LOGIN'],
+      ENV['GITHUB_API_TOKEN']
+    )
+    super(*args)
+  end
+
+  desc 'tasks LISTNAME', "List tasks' titles in Wunderlist LISTNAME"
+  def tasks(list_name)
+    puts @wl.tasks(list_name).map(&:title)
+  end
+
+  desc 'convert LISTNAME USER REPONAME',
+       'Converts Wunderlist tasks in LISTNAME to GitHub issues in USER/REPONAME'
+  def convert(list_name, user, repo_name)
+    tasks = @wl.tasks(list_name)
+    num_tasks = tasks.length
+    STDERR.puts "Converting #{num_tasks} tasks from #{list_name} " \
+                "to #{repo_name}"
+    num_converted = 0
+    tasks.each do |t|
+      @gh.convert(t, user, repo_name)
+      num_converted += 1
+      STDERR.puts "Converted #{t.title} (#{num_converted}/#{num_tasks})."
+    end
+  end
+end
+
+WlToGhCLI.start(ARGV)
