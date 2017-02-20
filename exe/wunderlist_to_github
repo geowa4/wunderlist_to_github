@@ -32,10 +32,9 @@ class WlToGhCLI < Thor
     STDERR.puts "Converting #{num_tasks} tasks from #{list_name} " \
                 "to #{repo_name}"
     num_converted = 0
-    tasks.each do |t|
-      @gh.convert(t, user, repo_name)
+    @gh.convert(tasks, user, repo_name) do |t|
       num_converted += 1
-      STDERR.puts "Converted #{t.title} (#{num_converted}/#{num_tasks})."
+      STDERR.puts "Converted #{t[:title]} (#{num_converted}/#{num_tasks})."
     end
   end
 end

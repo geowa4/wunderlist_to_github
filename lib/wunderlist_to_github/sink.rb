@@ -8,22 +8,18 @@ module WunderlistToGithub
       @github = Github.new(login: login, password: api_token)
     end
 
-    def convert(task, user, repo_name)
-      task_hash = convert_task_to_hash(task)
-      issue_hash = convert_task_hash_to_issue_hash(task_hash)
-      issue_hash[:user] = user
-      issue_hash[:repo] = repo_name
-      @github.issues.create(issue_hash)
-    end
+    # Accepts a hash of a task and creates an issue in the GitHub login's
+    # repository. If given a block, the task that was just converted to a
+    # GitHub issue is passed back to record any side effects.
+    def convert(task_hashes, user, repo_name)
+      task_hashes.each do |t|
+        issue_hash = convert_task_hash_to_issue_hash(t)
+        issue_hash[:user] = user
+        issue_hash[:repo] = repo_name
+        @github.issues.create(issue_hash)
 
-    def convert_task_to_hash(task)
-      {
-        title: task.title,
-        completed: task.completed,
-        note: task.note.content,
-        comments: task.task_comments.map(&:text),
-        subtasks: task.subtasks.map(&:title)
-      }
+        yield(t) if block_given?
+      end
     end
 
     def convert_task_hash_to_issue_hash(task_hash)
@@ -31,27 +27,26 @@ module WunderlistToGithub
         title: task_hash[:title],
         body: <<~BODY
         _Imported from Wunderlist_
-
         #{note_text(task_hash)}
-
         #{subtask_text(task_hash)}
-
         #{comment_text(task_hash)}
         BODY
       }
     end
 
     def note_text(task_hash)
-      if task_hash[:note].length.positive?
-        "# Note\n\n#{task_hash[:note]}"
+      note = task_hash[:note]
+      if note.respond_to?(:length) && note.length.positive?
+        "\n# Note\n\n#{note}"
       else
         ''
       end
     end
 
     def subtask_text(task_hash)
-      if task_hash[:subtasks].length.positive?
-        "# Subtasks\n\n" + task_hash[:subtasks].map do |s|
+      subtasks = task_hash[:subtasks]
+      if subtasks.respond_to?(:length) && subtasks.length.positive?
+        "\n# Subtasks\n\n" + subtasks.map do |s|
           " - [ ] #{s}"
         end.join("\n")
       else
@@ -60,8 +55,9 @@ module WunderlistToGithub
     end
 
     def comment_text(task_hash)
-      if task_hash[:comments].length.positive?
-        "# Comments\n\n" + task_hash[:comments].join("\n")
+      comments = task_hash[:comments]
+      if comments.respond_to?(:length) && comments.length.positive?
+        "\n# Comments\n\n" + comments.join("\n")
       else
         ''
       end
