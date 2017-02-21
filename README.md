@@ -1,8 +1,11 @@
-# WunderlistToGithub
+# Wunderlist-To-Github
 
 You have tasks in a list in Wunderlist, but
 you want them as issues on GitHub.
 That's what this does.
+
+Limitations are defined in the Future Work section at the bottom.
+If you want to see a change made, please, open an issue or issue a pull request.
 
 ## Installation
 
@@ -32,7 +35,8 @@ This will reveal an access token to be saved along with the client ID from befor
 
 With Wunderlist setup, let's move to GitHub.
 Start by getting a [personal access token](https://github.com/settings/tokens).
-Enter anything you'd like for the "Token description", but be sure to check the box next to "repo".
+Enter anything you'd like for the "Token description", but
+be sure to check the box next to "repo" so that token has the proper permissions.
 When finished, click "Generate token", and
 save the token along with the Wunderlist items from before.
 
@@ -40,22 +44,37 @@ save the token along with the Wunderlist items from before.
 
 All available commands can be viewed via the `help` command.
 
-```
-wunderlist_to_github help
-wunderlist_to_github help tasks
-```
+    $ wunderlist_to_github help
+
+Before the following commands can be run, those values saved from the Prerequisites section will need to be set as environment variables.
+The first option is to export them all.
+
+    $ export WUNDERLIST_CLIENT_ID=12345678901234567890
+    $ export WUNDERLIST_ACCESS_TOKEN=123456789012345678901234567890123456789012345678901234567890
+    $ export GITHUB_LOGIN=yourlogin
+    $ export GITHUB_API_TOKEN=1234567890123456789012345678901234567890
+
+The second option is to store them in a file called .env.
+
+    $ cat .env
+    WUNDERLIST_CLIENT_ID=12345678901234567890
+    WUNDERLIST_ACCESS_TOKEN=123456789012345678901234567890123456789012345678901234567890
+    GITHUB_LOGIN=yourlogin
+    GITHUB_API_TOKEN=1234567890123456789012345678901234567890
+
+That approach requires calling the following commands like so.
+
+    $ env $(xargs < .env) wunderlist_to_github command arg0 arg1 arg2
+
+This is how I set environment variables for a given program since others I run later cannot read them.
 
 See all the tasks' titles that will be retrieved for a given list.
 
-```
-wunderlist_to_github tasks WUNDERLISTNAME
-```
+    $ wunderlist_to_github tasks WUNDERLISTNAME
 
 Convert tasks into issues.
 
-```
-wunderlist_to_github convert WUNDERLISTNAME GITHUBUSER GITHUBPREPOSITORY
-```
+    $ wunderlist_to_github convert WUNDERLISTNAME GITHUBUSER GITHUBPREPOSITORY
 
 ## Development
 
@@ -70,10 +89,14 @@ then run `bundle exec rake release`, which will create a git tag for the version
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/geowa4/wunderlist_to_github.
+Generally, anything with a relevant use case and tests will be accepted.
 
-# Future Work
+## Future Work
 
-- [ ] Keep completed state of subtasks.
+- [ ] Keep completed state of subtasks; this doesn't seem to be in the gem.
+- [ ] Retry on API failure.
+- [ ] Skip first n issues (in case of failure).
+- [ ] Edit a GitHub issue if reran in case of failure or updates in Wunderlist.
 - [ ] Add formatting options.
 - [ ] Assign GitHub users based on Wunderlist assignee.
-- [ ] Edit a GitHub issue if reran in case of failure or updates in Wunderlist.
+- [ ] Override environment variables with command line options.
