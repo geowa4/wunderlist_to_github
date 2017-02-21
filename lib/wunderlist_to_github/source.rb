@@ -13,7 +13,10 @@ module WunderlistToGithub
 
     # Returns an array of task hashes containing the most important fields.
     def tasks(list_name)
-      @wl.tasks([list_name]).map(&method(:convert_task_to_hash))
+      complete_tasks = @wl.tasks([list_name], true)
+      incomplete_tasks = @wl.tasks([list_name])
+      all_tasks = complete_tasks + incomplete_tasks
+      all_tasks.map(&method(:convert_task_to_hash))
     end
 
     def convert_task_to_hash(task)

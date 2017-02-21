@@ -11,12 +11,10 @@ module WunderlistToGithub
     # Accepts a hash of a task and creates an issue in the GitHub login's
     # repository. If given a block, the task that was just converted to a
     # GitHub issue is passed back to record any side effects.
-    def convert(task_hashes, user, repo_name)
+    def convert(task_hashes, user, repo)
       task_hashes.each do |t|
         issue_hash = convert_task_hash_to_issue_hash(t)
-        issue_hash[:user] = user
-        issue_hash[:repo] = repo_name
-        @github.issues.create(issue_hash)
+        create_issue(issue_hash, user, repo, t[:completed])
 
         yield(t) if block_given?
       end
@@ -61,6 +59,19 @@ module WunderlistToGithub
       else
         ''
       end
+    end
+
+    def create_issue(issue_hash, user, repo, completed)
+      issue_hash[:user] = user
+      issue_hash[:repo] = repo
+      issue = @github.issues.create(issue_hash)
+      return issue unless completed
+      @github.issues.edit(
+        user: user,
+        repo: repo,
+        number: issue[:number],
+        state: 'closed'
+      )
     end
   end
 end
