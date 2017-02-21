@@ -93,7 +93,7 @@ Generally, anything with a relevant use case and tests will be accepted.
 
 ## Future Work
 
-- [ ] Keep completed state of subtasks; this doesn't seem to be in the gem.
+- [ ] Keep completed state of subtasks; must submit pull request to sh8/wunderlist-api.
 - [ ] Retry on API failure.
 - [ ] Skip first n issues (in case of failure).
 - [ ] Edit a GitHub issue if reran in case of failure or updates in Wunderlist.
